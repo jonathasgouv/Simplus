@@ -55,6 +55,21 @@ export default () => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const { state: user } = useContext(UserContext);
   const [payments, setPayments] = useState(user.payments);
+  const [refresh, setRefresh] = useState(false);
+
+  const onRefresh = async () => {
+    customers = await Api.getCustomers(await AsyncStorage.getItem("token"));
+
+    userDispatch({
+      type: "setCustomers",
+      payload: {
+        customers: customers,
+      },
+    });
+
+    setCustomers(customers);
+    setRefresh(false);
+  };
 
   const handleCreateClick = async () => {
     navigation.navigate("Edit_CreatePayment", { payment: false });
@@ -146,6 +161,8 @@ export default () => {
       <View style={styles.customersView} horizontal={false}>
         <FlatList
           ref={flatListRef}
+          refreshing={refresh}
+          onRefresh={() => onRefresh}
           ListEmptyComponent={NoContent}
           initialNumToRender={20}
           removeClippedSubviews={true}

@@ -21,6 +21,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserContext } from "../../contexts/UserContext";
 import NoContent from "../../components/NoContent";
+import Api from "../../Api";
 
 import styles from "./styles";
 
@@ -55,6 +56,21 @@ export default () => {
   const { dispatch: userDispatch } = useContext(UserContext);
   const { state: user } = useContext(UserContext);
   const [customers, setCustomers] = useState(user.customers);
+  const [refresh, setRefresh] = useState(false);
+
+  const onRefresh = async () => {
+    customers = await Api.getCustomers(await AsyncStorage.getItem("token"));
+
+    userDispatch({
+      type: "setCustomers",
+      payload: {
+        customers: customers,
+      },
+    });
+
+    setCustomers(customers);
+    setRefresh(false);
+  };
 
   const handleCreateClick = async () => {
     navigation.navigate("Edit_CreateCustomer", { customer: false });
@@ -144,6 +160,8 @@ export default () => {
       <View style={styles.customersView} horizontal={false}>
         <FlatList
           ref={flatListRef}
+          refreshing={refresh}
+          onRefresh={() => onRefresh}
           ListEmptyComponent={NoContent}
           initialNumToRender={20}
           removeClippedSubviews={true}
